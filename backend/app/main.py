@@ -4,6 +4,7 @@ from sqlalchemy import text
 
 from app.config import settings
 from app.database import engine
+from app.api import iocs
 
 app = FastAPI(title="Incident Response Platform API", version="0.1.0")
 
@@ -26,3 +27,6 @@ async def health_check_db():
     async with engine.connect() as conn:
         await conn.execute(text("SELECT 1"))
     return {"status": "ok", "database": "connected"}
+
+
+app.include_router(iocs.router, prefix="/api/iocs", tags=["iocs"])
