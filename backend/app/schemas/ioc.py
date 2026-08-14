@@ -29,9 +29,17 @@ class EnrichmentResultResponse(BaseModel):
     """A single source's result, returned as part of the IOC response."""
     source: str
     score: float
-    verdict: str  # clean, suspicious, malicious
+    verdict: str
 
     model_config = {"from_attributes": True}
+
+
+class VerdictResponse(BaseModel):
+    """The combined true_positive/false_positive verdict + SOC summary."""
+    verdict: str
+    confidence: str
+    composite_score: float
+    soc_summary: str
 
 
 class IOCResponse(BaseModel):
@@ -42,5 +50,6 @@ class IOCResponse(BaseModel):
     first_seen: datetime
     last_seen: datetime
     enrichment_results: list[EnrichmentResultResponse] = []
+    verdict: VerdictResponse | None = None
 
     model_config = {"from_attributes": True}

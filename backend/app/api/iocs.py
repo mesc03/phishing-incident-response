@@ -11,6 +11,8 @@ from app.models.enrichment import EnrichmentResult
 from app.schemas.ioc import IOCSubmitRequest, IOCResponse
 from app.enrichment.sources.abuseipdb import AbuseIPDBSource
 from app.enrichment.sources.virustotal import VirusTotalSource
+from app.core.verdict import determine_verdict
+from app.core.soc_summary import generate_soc_summary
 
 router = APIRouter()
 
@@ -86,6 +88,11 @@ async def submit_ioc(payload: IOCSubmitRequest, db: AsyncSession = Depends(get_d
                     "verdict": f"error: {str(e)}",
                 })
 
+    # Combine everything into one verdict + SOC summary
+    sources_attempted = sum(1 for s in ALL_SOURCES if payload.ioc_type.value in s.supported_ioc_types)
+    verdict_data = determine_verdict(enrichment_results, sources_attempted)
+    soc_summary = generate_soc_summary(payload.ioc_type.value, payload.value, verdict_data)
+
     return IOCResponse(
         id=ioc.id,
         ioc_type=ioc.ioc_type,
@@ -93,4 +100,10 @@ async def submit_ioc(payload: IOCSubmitRequest, db: AsyncSession = Depends(get_d
         first_seen=ioc.first_seen,
         last_seen=ioc.last_seen,
         enrichment_results=enrichment_results,
+        verdict={
+            "verdict": verdict_data["verdict"],
+            "confidence": verdict_data["confidence"],
+            "composite_score": verdict_data["reasoning"]["composite_score"],
+            "soc_summary": soc_summary,
+        },
     )
