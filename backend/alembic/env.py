@@ -8,8 +8,11 @@ from app.config import settings
 from app.database import get_db
 from app.models.ioc import IOC
 from app.models.enrichment import EnrichmentResult
+from app.models.incident import Incident  
+from app.models.incident_ioc import IncidentIOC  
 from app.schemas.ioc import IOCSubmitRequest, IOCResponse
 from app.enrichment.sources.abuseipdb import AbuseIPDBSource
+
 
 router = APIRouter()
 
